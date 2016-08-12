@@ -215,26 +215,25 @@ static AMMethod2Implement *sharedPlugin;
             
             NSTextView *textView               = [AMXcodeHelper currentSourceCodeTextView];
             NSString *hFileText                = textView.textStorage.string;
-            NSRange trimStringRange = [selectString rangeOfString:@"{"];
-            if (trimStringRange.location != NSNotFound) {
-                selectString = [selectString substringWithRange:NSMakeRange(0, trimStringRange.location)];
-                NSLog(@"#2trimString: %@", selectString);
-            }
-            NSString *trimString = [selectString removeSpaceAndNewline];
-            NSString *declareMethod = [trimString stringByAppendingString:@";"];
+            
+            //************* Angle
+            NSString *tryString = selectString;
+            NSArray *results = [tryString getStringMatchesWithRegex:_declareMap[0]];
             NSRange contentRange = [AMIDEHelper getClassImplementContentRangeWithClassNameItemList:currentClassName fileText:hFileText fileType:AMIDEFileTypeHFile];
-            NSRange textRange = [hFileText rangeOfString:trimString options:NSCaseInsensitiveSearch range:contentRange];
-            if (textRange.location == NSNotFound)
-            {
-                
-                NSRange range = [AMIDEHelper getInsertRangeWithClassImplementContentRange:contentRange];
-                if (range.location != NSNotFound) {
-                    [textView insertText:[NSString stringWithFormat:@"\n%@\n", declareMethod] replacementRange:range];
+            
+            for (NSString *trimString in results) {
+                NSString *declareMethod = [trimString stringByAppendingString:@";"];
+                NSRange textRange = [hFileText rangeOfString:trimString options:NSCaseInsensitiveSearch range:contentRange];
+                if (textRange.location == NSNotFound)
+                {
+                    NSRange range = [AMIDEHelper getInsertRangeWithClassImplementContentRange:contentRange];
+                    if (range.location != NSNotFound) {
+                        [textView insertText:[NSString stringWithFormat:@"\n%@\n", declareMethod] replacementRange:range];
+                    }
                     
                 }
-                
+                [AMIDEHelper selectText:declareMethod];
             }
-            [AMIDEHelper selectText:declareMethod];
             
         }else if (matchIndex == AMImplementTypeSelector) {
             NSTextView *textView               = [AMXcodeHelper currentSourceCodeTextView];

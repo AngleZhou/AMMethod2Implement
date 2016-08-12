@@ -26,6 +26,27 @@
     BOOL isMatch = [regularExpression numberOfMatchesInString:self options:0 range:searchRange] > 0;
     return isMatch;
 }
+- (NSArray*)getStringMatchesWithRegex:(NSString *)regex {
+    NSError *error;
+    NSRegularExpression *regularExpression = [NSRegularExpression
+                                              regularExpressionWithPattern:regex
+                                              options:NSRegularExpressionAnchorsMatchLines
+                                              error:&error];
+    __weak NSString *wSelf = self;
+    __block NSMutableArray *mArr = [[NSMutableArray alloc] init];
+    [regularExpression enumerateMatchesInString:self options:0 range:NSMakeRange(0, self.length) usingBlock:^(NSTextCheckingResult * _Nullable result, NSMatchingFlags flags, BOOL * _Nonnull stop) {
+        NSString *str = [wSelf substringWithRange:result.range];
+        NSRange trimStringRange = [str rangeOfString:@"{"];
+        if (trimStringRange.location != NSNotFound) {
+            str = [str substringWithRange:NSMakeRange(0, trimStringRange.location)];
+            NSLog(@"#2trimString: %@", str);
+        }
+        NSString *trimString = [str removeSpaceAndNewline];
+        [mArr insertObject:trimString atIndex:0];
+    }];
+    
+    return [mArr copy];
+}
 
 - (NSInteger)getMatchIndexWithRegexList:(NSArray *)regexList
 {
